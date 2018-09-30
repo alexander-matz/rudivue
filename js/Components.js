@@ -1,7 +1,7 @@
 Vue.component('v-file', {
   methods: {
   },
-  props: ['accept', 'text'],
+  props: ['accept', 'flat', 'icon'],
   methods: {
     onPickFile (e) {
       this.$refs.elem.click()
@@ -20,8 +20,8 @@ Vue.component('v-file', {
     },
   },
   template: `
-    <div>
-      <v-btn @click='onPickFile'> {{ text }} </v-btn>
+    <v-btn :icon='icon' :flat='flat' @click='onPickFile'>
+      <slot></slot>
       <input
         type='file'
         :accept='accept'
@@ -29,7 +29,7 @@ Vue.component('v-file', {
         @change='onFilePicked'
         style='position: absolute; left: -99999px'>
       </input>
-    </div>
+    </v-btn>
   `
 });
 

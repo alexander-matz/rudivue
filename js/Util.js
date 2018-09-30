@@ -7,6 +7,14 @@ const randomBoxedCoords = (lowerLeft, upperRight) => {
   return `${lat}, ${lng}`;
 };
 
+const downloadFile = (filename, contents) => {
+  let href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents);
+  let link = document.createElement('a');
+  link.href = href;
+  link.download = filename;
+  link.click();
+}
+
 const randomTeam = () => {
   return {
     name1: `${chance.name()} ${chance.last()}`,

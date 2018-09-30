@@ -1,29 +1,29 @@
 "use strict";
 
-  const acreate = (shape, val) => {
-    val = val || 0;
-    let size = 1;
-    for (let i = 0; i < shape.length; ++i) {
-      size *= shape[i];
-    }
-    return Array(size).fill(val);
+const acreate = (shape, val) => {
+  val = val || 0;
+  let size = 1;
+  for (let i = 0; i < shape.length; ++i) {
+    size *= shape[i];
   }
+  return Array(size).fill(val);
+}
 
-  const aget = (data, shape, idx) => {
-    let pos = 0;
-    for (let i = shape.length-1; i >= 0; --i) {
-      pos = (pos * shape[i]) + idx[i];
-    }
-    return data[pos];
+const aget = (data, shape, idx) => {
+  let pos = 0;
+  for (let i = shape.length-1; i >= 0; --i) {
+    pos = (pos * shape[i]) + idx[i];
   }
+  return data[pos];
+}
 
-  const aset = (data, shape, idx, val) => {
-    let pos = 0;
-    for (let i = shape.length-1; i >= 0; --i) {
-      pos = (pos * shape[i]) + idx[i];
-    }
-    data[pos] = val;
+const aset = (data, shape, idx, val) => {
+  let pos = 0;
+  for (let i = shape.length-1; i >= 0; --i) {
+    pos = (pos * shape[i]) + idx[i];
   }
+  data[pos] = val;
+}
 
 let Matching = (() => {
 
@@ -195,18 +195,18 @@ let Matching = (() => {
   /** Compute the badness of the current matching using a set of constraints.
    * Supported constraints (with default values:
    *
-   * { 'type': 'meet-once', 'weight': 100000 }
+   * { 'type': 'meet-once', 'weight': 10000 }
    *   - penalty that is applied if teams meet more than once
    *   - a pair of teams meeting twice results in the penalty being applied two
    *     times (one time per team)
    *
-   * { 'type': 'ways-short', 'weight': 10 }
+   * { 'type': 'ways-short', 'weight': 1 }
    *   - linear penalty for total kms walked
    *
-   * { 'type': 'ways-equal', 'weight': 10 }
+   * { 'type': 'ways-equal', 'weight': 1 }
    *   - linear penalty for the standard deviation of all path segments
    * 
-   * { 'type': 'not-dish', team: number, 'dish': number, 'weight': 1000 }
+   * { 'type': 'not-dish', team: number, 'dish': number, 'weight': 100 }
    *   - penalty that is applied if a team gets a dish it does not want to cook
    */
   const score = (matching) => {
@@ -235,7 +235,7 @@ let Matching = (() => {
               const otherTeam = aget(fMatching, fShape, [dish, group, role]);
               if (otherTeam == team) continue;
               if (metAlready[team][otherTeam] != undefined) {
-                badness += cn.weight || 100000;
+                badness += cn.weight || 10000;
               }
               metAlready[team][otherTeam] = true;
             }
@@ -248,7 +248,7 @@ let Matching = (() => {
         if (routes == null) {
           [routes, totalKm] = calculateRoutes(matching);
         }
-        badness += (cn.weight || 10) * totalKm;
+        badness += (cn.weight || 1) * totalKm;
         break;
 
       case 'ways-equal':
@@ -263,14 +263,14 @@ let Matching = (() => {
           stdDev += D * D;
         }
         stdDev = stdDev / (routes.length - 1);
-        badness += (cn.weight || 10) * stdDev;
+        badness += (cn.weight || 1) * stdDev;
         break;
 
       case 'not-dish':
-        const team = cn.team;      
+        const team = cn.team;
         const dish = cn.dish;
-        if (aget(rMatching, rShape, [dish, team]).role == 0) {
-          badness += cn.weight || 1000;
+        if (aget(rMatching, rShape, [team, dish]).role == 0) {
+          badness += cn.weight || 100;
         }
         break;
 

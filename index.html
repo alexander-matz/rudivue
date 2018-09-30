@@ -12,29 +12,42 @@
     <v-app>
       <v-content>
         <v-container>
+
+          <v-snackbar v-model='snack.visible' :color='snack.color' auto-height>
+            <ul style='list-style: none'>
+              <li v-for='item in snack.items'>
+                {{ item }}
+              </li>
+            </ul>
+          </v-snackbar>
+
           <v-card>
             <v-card-title>
               <v-tabs v-model="tabs" slot="extension">
                 <v-tab>Teams</v-tab>
-                <v-tab>Templates</v-tab>
                 <v-tab>Matching</v-tab>
+                <v-tab>Templates</v-tab>
                 <v-tab>Mails</v-tab>
               </v-tabs>
             </v-card-title>
             <v-card-text>
               <v-tabs-items v-model='tabs'>
 
-                <view-teams v-model='teams'>
+                <view-teams v-model='teams' v-bind:snack.sync='snack'>
                 </view-teams>
 
-                <view-templates v-model='templates'>
-                </view-templates>
-
-                <view-matching v-model='matching' v-bind:teams='teams'>
+                <view-matching v-model='match' v-bind:teams='teams'>
                 </view-matching>
 
-                <v-tab-item>
-                </v-tab-item>
+                <view-templates v-model='templates' v-bind:snack.sync='snack'>
+                </view-templates>
+
+                <view-mails
+                  v-bind:templates='templates'
+                  v-bind:teams='teams'
+                  v-bind:match='match'>
+                </view-mails>
+
               </v-tabs-items>
             </v-card-text>
           </v-card>
@@ -48,6 +61,7 @@
   <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"></script>
 
   <script src="js/lib/chance.js"></script>
+  <script src="js/lib/fuzzysearch.js"></script>
   <script src="js/lib/papaparse.min.js"></script>
 
   <script src="js/Util.js"></script>
@@ -55,9 +69,12 @@
 
   <script src="js/Components.js"></script>
   <script src="js/Teams.js"></script>
-  <script src="js/Templates.js"></script>
   <script src="js/Matching.js"></script>
+  <script src="js/Templates.js"></script>
+  <script src="js/Mails.js"></script>
   <script>
+    Vue.prototype.fuzzyFilter = (i, q, it) =>
+      fuzzysearch(q.toLowerCase(), it.toLowerCase());
     new Vue({
       el: '#app',
       data: {
@@ -65,7 +82,13 @@
 
         teams: [],
 
-        matching: null,
+        snack: {
+          visible: false,
+          color: 'error',
+          items: [],
+        },
+
+        match: null,
 
         templates: {
           'starter': 'no starter template',

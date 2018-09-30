@@ -1,29 +1,28 @@
 Vue.component('view-teams', {
   data: () => ({
     page: 1,
-    snackbarColor: 'success',
-    snackbarItems: [],
-    snackbar: false,
   }),
-  props: [ 'value' ],
+  props: [ 'value', 'snack' ],
   methods: {
     randTeams () {
       for (let i = 0; i < 9; ++i) {
         this.value.push(randomTeam());
       }
     },
-    newTeam () {
+    addTeam () {
       this.$emit('input', [...this.value, emptyTeam()]);
       this.$nextTick(() => {
         this.page = this.value.length;
       });
     },
-    removeTeam () {
-    },
-    snack(msgs, color) {
-      this.snackbarColor = color;
-      this.snackbarItems = msgs;
-      this.snackbar = true;
+    deleteTeam () {
+      if (this.value.length > 0) {
+        const idx = this.page-1;
+        if (idx != null) {
+          const teams = [...this.value.slice(0, idx), ...this.value.slice(idx+1)];
+          this.$emit('input', teams);
+        }
+      }
     },
     onImport (text) {
       const {data, errors, meta} = Papa.parse(text, {
@@ -34,7 +33,11 @@ Vue.component('view-teams', {
       });
       if (errors.length > 0) {
         errors.map(x => console.log(`error: ${JSON.stringify(x)}`));
-        this.snack(errors, 'error');
+        this.$emit('update:snack', {
+          visible: true,
+          color: 'error',
+          items: [errors.map(JSON.stringify)],
+        });
       } else {
         let missing = [];
         const expected = ['name1', 'mail1', 'phone1',
@@ -46,13 +49,32 @@ Vue.component('view-teams', {
         }
         if (missing.length > 0) {
           console.log('missing fields: ' + missing.join(', '));
-          this.snack(missing.map(x => `missing field ${x}`), 'warning');
+          this.$emit('update:snack', {
+            visible: true,
+            color: 'warning',
+            items: ['Missing fields: ' + missing.join(', ')],
+          });
         }
         let teams = [];
         for (let i = 0; i < data.length; ++i) {
           teams.push(cleanTeam(data[i]));
         }
         this.$emit('input', teams);
+      }
+    },
+    onExport (text) {
+      chunks = [];
+      chunks.push('"name1","mail1","phone1","name2","mail2","phone2","address","comments","coords"\n');
+      this.value.forEach((team) => {
+        chunks.push(`"${team.name1}","${team.mail1}","${team.phone1}",`);
+        chunks.push(`"${team.name2}","${team.mail2}","${team.phone2}",`);
+        chunks.push(`"${team.address}","${team.comments}","${team.coords}"\n`);
+      });
+      downloadFile('teams.csv', chunks.join(''));
+    },
+    onSearch(item) {
+      if (item != null) {
+        this.page = item + 1;
       }
     },
   },
@@ -73,36 +95,47 @@ Vue.component('view-teams', {
         return null;
       }
     },
+    filterItems () {
+      items = [];
+      const teams = this.value;
+      for (let i = 0; i < teams.length; ++i) {
+        items.push({
+          text: `${teams[i].name1}, ${teams[i].name2}`,
+          value: i,
+        })
+      }
+      return items;
+    },
   },
   template: `
   <v-tab-item>
-    <v-snackbar v-model='snackbar' :color='snackbarColor' auto-height>
-      <ul style='list-style: none'>
-        <li v-for='item in snackbarItems'>
-          {{ item }}
-        </li>
-      </ul>
-    </v-snackbar>
     <v-layout row wrap>
-      <v-flex md3 xs4>
-        <v-btn @click='randTeams'>
-          Random Teams
-        </v-btn>
-      </v-flex>
-      <v-flex md3 xs4>
-        <v-btn @click='newTeam'>
-          New Team
-        </v-btn>
-      </v-flex>
-      <v-flex md3 xs4>
-        <v-file accept='.csv' @input='onImport' text='Import Teams'>
-        </v-file>
-      </v-flex>
-      <v-flex md6 xs12 block>
-      </v-flex>
+      <v-file accept='.csv' @input='onImport'>
+        Import
+        <v-icon right>backup</v-icon>
+      </v-file>
+      <v-btn @click='onExport'>
+        Export
+        <v-icon right>archive</v-icon>
+      </v-btn>
+      <v-btn @click='randTeams'>
+        Random
+        <v-icon right>motorcycle</v-icon>
+      </v-btn>
+      <v-btn @click='addTeam'>
+        New
+        <v-icon right>add_circle</v-icon>
+      </v-btn>
+      <v-btn @click='deleteTeam' :disabled='selectedIdx == null'>
+        Remove
+        <v-icon right>delete</v-icon>
+      </v-btn>
+      <v-autocomplete :items='filterItems' :filter='fuzzyFilter' @input='onSearch'
+        clearable append-icon='search' placeholder='Filter'>
+      </v-autocomplete>
     </v-layout>
 
-    <v-pagination v-model='page' :length='value.length'>
+    <v-pagination v-model='page' :length='value.length' v-if='value.length > 0'>
     </v-pagination>
 
     <div v-if='selectedIdx != null'>
@@ -112,7 +145,7 @@ Vue.component('view-teams', {
       no teams
     </div>
 
-    <v-pagination v-model='page' :length='value.length'>
+    <v-pagination v-model='page' :length='value.length' v-if='value.length > 0'>
     </v-pagination>
   </v-tab-item>
   `,
