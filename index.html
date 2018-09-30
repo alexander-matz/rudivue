@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"/> 
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <title>Run & Dine</title>
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-content>
+        <v-container>
+          <v-card>
+            <v-card-title>
+              <v-tabs v-model="tabs" slot="extension">
+                <v-tab>Teams</v-tab>
+                <v-tab>Templates</v-tab>
+                <v-tab>Matching</v-tab>
+                <v-tab>Mails</v-tab>
+              </v-tabs>
+            </v-card-title>
+            <v-card-text>
+              <v-tabs-items v-model='tabs'>
+
+                <view-teams v-model='teams'>
+                </view-teams>
+
+                <view-templates v-model='templates'>
+                </view-templates>
+
+                <view-matching v-model='matching' v-bind:teams='teams'>
+                </view-matching>
+
+                <v-tab-item>
+                </v-tab-item>
+              </v-tabs-items>
+            </v-card-text>
+          </v-card>
+        </v-container>
+      </v-content>
+    </v-app>
+  </div>
+ 
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
+  <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"></script>
+
+  <script src="js/lib/chance.js"></script>
+  <script src="js/lib/papaparse.min.js"></script>
+
+  <script src="js/Util.js"></script>
+  <script src="js/libmatching.js"></script>
+
+  <script src="js/Components.js"></script>
+  <script src="js/Teams.js"></script>
+  <script src="js/Templates.js"></script>
+  <script src="js/Matching.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        tabs: 0,
+
+        teams: [],
+
+        matching: null,
+
+        templates: {
+          'starter': 'no starter template',
+          'main': 'no main template',
+          'dessert': 'no dessert template',
+        },
+      },
+    })
+  </script>
+</body>
+</html>
