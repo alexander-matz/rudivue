@@ -2,6 +2,13 @@
 
 importScripts('libmatching.js');
 
+const poisson = (k, l) => {
+  let x = 0;
+  for (let i = 0; i < k; ++i)
+    if (Math.random() < l) x += 1;
+  return x;
+}
+
 self.onmessage = (event) => {
   const data = event.data;
   const {match, score, rounds} = data;
@@ -14,9 +21,9 @@ self.onmessage = (event) => {
   for (let j = 0; j < rounds; ++j) {
     let attempt = Matching.copy(origMatch);
 
-    for (let i = 0; i < 10; ++i) {
-      const hit = Math.random() < 0.2;
-      if (!hit) continue;
+
+    const nSwapSeats = poisson(20, 0.1);
+    for (let i = 0; i < nSwapSeats; ++i) {
       const dish = Math.floor(Math.random() * 3);
       const seat = Math.floor(Math.random() * 3);
       const g1 = Math.floor(Math.random() * (match.teams / 3));
@@ -24,9 +31,8 @@ self.onmessage = (event) => {
       Matching.swapSeats(attempt, dish, seat, g1, g2);
     }
 
-    for (let i = 0; i < 2; ++i) {
-      const hit = Math.random() < 0.125;
-      if (!hit) continue;
+    const nSwapTeams = poisson(4, 0.064);
+    for (let i = 0; i < nSwapTeams; ++i) {
       const t1 = Math.floor(Math.random() * match.teams);
       const t2 = Math.floor(Math.random() * match.teams);
       Matching.swapTeams(attempt, t1, t2);

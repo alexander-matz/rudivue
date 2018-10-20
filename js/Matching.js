@@ -1,16 +1,23 @@
 Vue.component('view-matching', {
   data: () => ({
-    numRounds: 50,
     busy: false,
     score: Infinity,
     workers: null,
     match: null,
+    start: null,
   }),
   destroyed() {
     this.stopMatching();
   },
   props: [ 'value', 'teams' ],
   methods: {
+    calcRounds() {
+      let akk = 0;
+      for (let i = 0; i < 8; ++i) {
+        akk += Math.floor(Math.random() * 8)
+      }
+      return akk;
+    },
     resetMatching() {
 
       this.stopMatching();
@@ -38,21 +45,29 @@ Vue.component('view-matching', {
     },
     startMatching() {
       this.workers = [];
-      for (let i = 0; i < 4; ++i) {
+      for (let i = 0; i < 1; ++i) {
         let worker = new Worker('js/worker.js');
         worker.onmessage = this.handleMessage;
         worker.postMessage({
           score: this.score,
           match: this.match,
-          rounds: this.numRounds
+          rounds: this.calcRounds(),
         });
         this.workers.push(worker);
       }
+      this.start = Date.now() / 1000;
       this.busy = true;
     },
     stopMatching() {
-      this.workers.forEach(worker => worker.terminate());
-      this.workers = null;
+      if (this.workers != null) {
+        this.workers.forEach(worker => worker.terminate());
+        this.workers = null;
+      }
+      if (this.start != null) {
+        const now = Date.now() / 1000;
+        console.log(`optimized for ${(now - this.start).toFixed(3)} s`);
+        this.start = null;
+      }
       this.busy = false;
     },
     handleMessage(event) {
@@ -66,15 +81,15 @@ Vue.component('view-matching', {
         event.target.postMessage({
           score: this.score,
           match: this.match,
-          rounds: this.numRounds
+          rounds: this.calcRounds(),
         });
       }
     },
-    stopMatching() {
-      this.busy = false;
-    },
     onSearch(index) {
-      this.page = index + 1;
+      console.log(index);
+      if (index != null) {
+        this.page = index + 1;
+      }
     }
   },
   computed: {
@@ -107,47 +122,49 @@ Vue.component('view-matching', {
   },
   template: `
   <v-tab-item v-if='problems == null'>
-    <v-layout wrap>
-      <v-flex md6 xs12>
-        <v-btn v-if='match == null' @click='resetMatching'>
-          Initialize
-        </v-btn>
-        <v-btn v-else @click='resetMatching'>
-          Reset
-        </v-btn>
-        <v-btn :disabled='match == null' v-if='!busy' @click='startMatching'>
-          Improve!
-        </v-btn>
-        <v-btn :disabled='match == null' v-else @click='stopMatching'>
-          Stop!
-        </v-btn>
-        <v-btn v-if='this.match != null' color='info'>
-          {{ this.score.toFixed(2) }}
-        </v-btn>
-      </v-flex>
-      <v-flex md6 xs12>
-        <v-autocomplete :items='filterItems' :filter='fuzzyFilter' @input='onSearch'
-          clearable append-icon='search' placeholder='Filter'>
-        </v-autocomplete>
-      </v-flex>
-      <v-flex xs12 v-if='match != null'>
-        <view-match v-model='match' v-bind:teams='teams'>
-        </view-match>
-      </v-flex>
-      <v-flex xs12 v-else>
-        <p class='text-xs-center'>
-          Mo matching yet
-        </p>
-      </v-flex>
-    </v-layout>
+    <v-card-text>
+      <v-layout wrap>
+        <v-flex md6 xs12>
+          <v-btn v-if='match == null' @click='resetMatching'>
+            Initialize
+          </v-btn>
+          <v-btn v-else @click='resetMatching'>
+            Reset
+          </v-btn>
+          <v-btn :disabled='match == null' v-if='!busy' @click='startMatching'>
+            Improve!
+          </v-btn>
+          <v-btn :disabled='match == null' v-else @click='stopMatching'>
+            Stop!
+          </v-btn>
+          <div class='score' v-if='this.match != null'>
+            {{ this.score.toFixed(2) }}
+          </div>
+        </v-flex>
+        <v-flex md6 xs12>
+          <v-autocomplete :items='filterItems' :filter='fuzzyFilter' @input='onSearch'
+            clearable append-icon='search' placeholder='Filter'>
+          </v-autocomplete>
+        </v-flex>
+        <v-flex xs12 v-if='match != null'>
+          <view-match v-model='match' v-bind:teams='teams'>
+          </view-match>
+        </v-flex>
+        <v-flex xs12 v-else>
+          <p class='text-xs-center'>
+            No matching yet
+          </p>
+        </v-flex>
+      </v-layout>
+    </v-card-text>
   </v-tab-item>
 
   <v-tab-item v-else>
-    <v-layout>
-      <v-flex xs12 class='text-xs-center'>
+    <v-footer color='warning'>
+      <v-flex pa-3>
         {{ problems }}
       </v-flex>
-    </v-layout>
+    </v-footer>
   </v-tab-item>
   `,
 });
@@ -188,55 +205,53 @@ Vue.component('view-match', {
     },
   },
   template: `
-    <v-card>
-      <v-layout wrap>
-        <v-flex xs12>
-          <v-pagination v-model='page' :length='teams.length'></v-pagination>
-        </v-flex>
-      </v-layout>
-      <v-card-title class='title'>
+    <v-layout wrap>
+      <v-flex xs12>
+        <v-pagination v-model='page' :length='teams.length'></v-pagination>
+      </v-flex>
+
+      <v-flex xs12 class='headline' pt-3>
         {{ teamStr(team) }}
-      </v-card-title>
-      <v-card-text>
-        <div class='subheading'>
-          Cooks: {{ dishes[cooks] }}
-        </div>
-        <div v-for='dish in [0, 1, 2]'>
-          <div :class='classDish(dish)'>{{ dishes[dish] }} @ {{ teamAddr(tour[dish][0]) }}</div>
-          <v-list>
-            <v-list-tile>
-              <v-list-tile-content>
-                <v-list-tile-title class='font-weight-medium'>
-                  {{ teamStr(tour[dish][0]) }} (Host)
-                </v-list-tile-title>
-                <v-list-tile-sub-title class='pl-2'>
-                  {{ teams[tour[dish][0]].comments }}
-                </v-list-tile-sub-title>
-              </v-list-tile-content>
-            </v-list-tile>
-            <v-list-tile>
-              <v-list-tile-content>
-                <v-list-tile-title>
-                  {{ teamStr(tour[dish][1]) }} (Guest)
-                </v-list-tile-title>
-                <v-list-tile-sub-title class='pl-2'>
-                  {{ teams[tour[dish][1]].comments }}
-                </v-list-tile-sub-title>
-              </v-list-tile-content>
-            </v-list-tile>
-            <v-list-tile>
-              <v-list-tile-content>
-                <v-list-tile-title>
-                  {{ teamStr(tour[dish][2]) }} (Guest)
-                </v-list-tile-title>
-                <v-list-tile-sub-title class='pl-2'>
-                  {{ teams[tour[dish][2]].comments }}
-                </v-list-tile-sub-title>
-              </v-list-tile-content>
-            </v-list-tile>
-          </v-list>
-        </div>
-      </v-card-text>
-    </v-card>
+      </v-flex>
+
+      <v-flex xs12 class='subheading'>
+        Cooks: {{ dishes[cooks] }}
+      </v-flex>
+      <v-flex xs12 v-for='dish in [0, 1, 2]'>
+        <div :class='classDish(dish)'>{{ dishes[dish] }} @ {{ teamAddr(tour[dish][0]) }}</div>
+        <v-list>
+          <v-list-tile>
+            <v-list-tile-content>
+              <v-list-tile-title class='font-weight-medium'>
+                {{ teamStr(tour[dish][0]) }} (Host)
+              </v-list-tile-title>
+              <v-list-tile-sub-title class='pl-2'>
+                {{ teams[tour[dish][0]].comments }}
+              </v-list-tile-sub-title>
+            </v-list-tile-content>
+          </v-list-tile>
+          <v-list-tile>
+            <v-list-tile-content>
+              <v-list-tile-title>
+                {{ teamStr(tour[dish][1]) }} (Guest)
+              </v-list-tile-title>
+              <v-list-tile-sub-title class='pl-2'>
+                {{ teams[tour[dish][1]].comments }}
+              </v-list-tile-sub-title>
+            </v-list-tile-content>
+          </v-list-tile>
+          <v-list-tile>
+            <v-list-tile-content>
+              <v-list-tile-title>
+                {{ teamStr(tour[dish][2]) }} (Guest)
+              </v-list-tile-title>
+              <v-list-tile-sub-title class='pl-2'>
+                {{ teams[tour[dish][2]].comments }}
+              </v-list-tile-sub-title>
+            </v-list-tile-content>
+          </v-list-tile>
+        </v-list>
+      </f-flex>
+    </v-layout>
   `
 });

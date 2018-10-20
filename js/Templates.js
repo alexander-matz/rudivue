@@ -74,35 +74,37 @@ Vue.component('view-templates', {
   },
   template: `
     <v-tab-item>
-      <v-layout row wrap>
-        <v-file accept='.json' @input='onImport'>
-          Import
-          <v-icon right>backup</v-icon>
-        </v-file>
-        <v-btn @click='onExport'>
-          Export
-          <v-icon right>archive</v-icon>
-        </v-btn>
-        <v-flex md4 xs12>
-          <v-select v-model='choice' :items='items' label='Select Mail Type'>
-          </v-select>
-        </v-flex>
-        <v-flex md4 xs12>
-          <v-select v-model='variable' :items='variables' @input='onAddVariable'>
-            <template slot='selection' slot-scope='{ index }'>
-              <span v-if='index === 0'>
-                Copy a variable to clipboard
-              </span>
-            </template>
-          </v-select>
-        </v-flex>
-      </v-layout>
-      </v-select>
-      <v-textarea
-        label="Mail Template"
-        auto-grow
-        v-model='value[choice]'>
-      </v-textarea>
+      <v-card-text>
+        <v-layout row wrap>
+          <v-file accept='.json' @input='onImport'>
+            Import
+            <v-icon right>backup</v-icon>
+          </v-file>
+          <v-btn @click='onExport'>
+            Export
+            <v-icon right>archive</v-icon>
+          </v-btn>
+          <v-flex md4 xs12>
+            <v-select v-model='choice' :items='items' label='Select Mail Type'>
+            </v-select>
+          </v-flex>
+          <v-flex md4 xs12>
+            <v-select v-model='variable' :items='variables' @input='onAddVariable'>
+              <template slot='selection' slot-scope='{ index }'>
+                <span v-if='index === 0'>
+                  Copy a variable to clipboard
+                </span>
+              </template>
+            </v-select>
+          </v-flex>
+        </v-layout>
+        </v-select>
+        <v-textarea
+          label="Mail Template"
+          auto-grow
+          v-model='value[choice]'>
+        </v-textarea>
+      </v-card-text>
     </v-tab-item>
   `,
 });

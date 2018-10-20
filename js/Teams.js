@@ -1,8 +1,9 @@
 Vue.component('view-teams', {
   data: () => ({
+    error: '',
     page: 1,
   }),
-  props: [ 'value', 'snack' ],
+  props: [ 'value', 'snack', 'footer' ],
   methods: {
     randTeams () {
       for (let i = 0; i < 9; ++i) {
@@ -88,6 +89,15 @@ Vue.component('view-teams', {
     }
   },
   computed: {
+    isReady() {
+      if (this.value.length > 0) {
+        this.error = '';
+        return true;
+      } else {
+        this.error = 'No Teams';
+        return false;
+      }
+    },
     selectedIdx () {
       if ( (this.page-1) >= 0 && (this.page-1) < this.value.length) {
         return this.page-1;
@@ -109,44 +119,53 @@ Vue.component('view-teams', {
   },
   template: `
   <v-tab-item>
-    <v-layout row wrap>
-      <v-file accept='.csv' @input='onImport'>
-        Import
-        <v-icon right>backup</v-icon>
-      </v-file>
-      <v-btn @click='onExport'>
-        Export
-        <v-icon right>archive</v-icon>
-      </v-btn>
-      <v-btn @click='randTeams'>
-        Random
-        <v-icon right>motorcycle</v-icon>
-      </v-btn>
-      <v-btn @click='addTeam'>
-        New
-        <v-icon right>add_circle</v-icon>
-      </v-btn>
-      <v-btn @click='deleteTeam' :disabled='selectedIdx == null'>
-        Remove
-        <v-icon right>delete</v-icon>
-      </v-btn>
-      <v-autocomplete :items='filterItems' :filter='fuzzyFilter' @input='onSearch'
-        clearable append-icon='search' placeholder='Filter'>
-      </v-autocomplete>
-    </v-layout>
+    <v-card-text>
+      <v-layout row wrap>
+        <v-file accept='.csv' @input='onImport'>
+          Import
+          <v-icon right>backup</v-icon>
+        </v-file>
+        <v-btn @click='onExport'>
+          Export
+          <v-icon right>archive</v-icon>
+        </v-btn>
+        <v-btn @click='randTeams'>
+          Random
+          <v-icon right>motorcycle</v-icon>
+        </v-btn>
+        <v-btn @click='addTeam'>
+          New
+          <v-icon right>add_circle</v-icon>
+        </v-btn>
+        <v-btn @click='deleteTeam' :disabled='selectedIdx == null'>
+          Remove
+          <v-icon right>delete</v-icon>
+        </v-btn>
 
-    <v-pagination v-model='page' :length='value.length' v-if='value.length > 0'>
-    </v-pagination>
+        <v-autocomplete
+          :items='filterItems'
+          :filter='fuzzyFilter'
+          @input='onSearch'
+          clearable append-icon='search' placeholder='Filter'
+          v-if='isReady'>
+        </v-autocomplete>
+      </v-layout>
 
-    <div v-if='selectedIdx != null'>
-      <view-team v-model="value[selectedIdx]"></view-team>
-    </div>
-    <div v-else class="text-sm-center">
-      no teams
-    </div>
+      <v-pagination v-model='page' :length='value.length' v-if='isReady'>
+      </v-pagination>
 
-    <v-pagination v-model='page' :length='value.length' v-if='value.length > 0'>
-    </v-pagination>
+      <div v-if='selectedIdx != null'>
+        <view-team v-model="value[selectedIdx]"></view-team>
+      </div>
+
+      <v-pagination v-model='page' :length='value.length' v-if='isReady'>
+      </v-pagination>
+    </v-card-text>
+    <v-footer color='warning' v-if='error != ""'>
+      <v-flex pa-3>
+      {{ error }}
+      </v-flex>
+    </v-footer>
   </v-tab-item>
   `,
 })

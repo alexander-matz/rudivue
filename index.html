@@ -6,6 +6,26 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"/> 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
   <title>Run & Dine</title>
+<style>
+.score {
+  display: inline-block;
+  background-color: #1976d2 !important;
+  border-color: #1976d2 !important;
+  color: #fff;
+  border-radius: 2px;
+  font-size: 14px;
+  font-weight: 500;
+  height: 36px;
+  text-align: center;
+  letter-spacing: normal;
+  line-height: 36px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  margin-left: 8px;
+  margin-right: 8px;
+  min-width: 88px;
+}
+</style>
 </head>
 <body>
   <div id="app">
@@ -23,33 +43,47 @@
 
           <v-card>
             <v-card-title>
-              <v-tabs v-model="tabs" slot="extension">
+
+              <v-tabs v-model="tab" slot="extension">
                 <v-tab>Teams</v-tab>
                 <v-tab>Matching</v-tab>
                 <v-tab>Templates</v-tab>
                 <v-tab>Mails</v-tab>
+                <v-tab>Send</v-tab>
               </v-tabs>
+
             </v-card-title>
-            <v-card-text>
-              <v-tabs-items v-model='tabs'>
 
-                <view-teams v-model='teams' v-bind:snack.sync='snack'>
-                </view-teams>
+            <v-tabs-items v-model='tab'>
 
-                <view-matching v-model='match' v-bind:teams='teams'>
-                </view-matching>
+              <view-teams
+                v-model='teams'
+                v-bind:snack.sync='snack'>
+              </view-teams>
 
-                <view-templates v-model='templates' v-bind:snack.sync='snack'>
-                </view-templates>
+              <view-matching
+                v-model='match'
+                v-bind:teams='teams'>
+              </view-matching>
 
-                <view-mails
-                  v-bind:templates='templates'
-                  v-bind:teams='teams'
-                  v-bind:match='match'>
-                </view-mails>
+              <view-templates
+                v-model='templates'
+                v-bind:snack.sync='snack'>
+              </view-templates>
 
-              </v-tabs-items>
-            </v-card-text>
+              <view-mails
+                v-bind:templates='templates'
+                v-bind:teams='teams'
+                v-bind:match='match'>
+              </view-mails>
+
+              <view-send
+                v-bind:templates='templates'
+                v-bind:teams='teams'
+                v-bind:match='match'>
+              </view-send>
+
+            </v-tabs-items>
           </v-card>
         </v-container>
       </v-content>
@@ -63,38 +97,42 @@
   <script src="js/lib/chance.js"></script>
   <script src="js/lib/fuzzysearch.js"></script>
   <script src="js/lib/papaparse.min.js"></script>
+  <script src="https://smtpjs.com/v2/smtp.js"></script>
 
   <script src="js/Util.js"></script>
   <script src="js/libmatching.js"></script>
+  <script src="js/libmails.js"></script>
 
   <script src="js/Components.js"></script>
   <script src="js/Teams.js"></script>
   <script src="js/Matching.js"></script>
   <script src="js/Templates.js"></script>
   <script src="js/Mails.js"></script>
+  <script src="js/Send.js"></script>
   <script>
     Vue.prototype.fuzzyFilter = (i, q, it) =>
       fuzzysearch(q.toLowerCase(), it.toLowerCase());
     new Vue({
       el: '#app',
       data: {
-        tabs: 0,
-
+        tab: 0,
         teams: [],
-
         snack: {
           visible: false,
           color: 'error',
           items: [],
         },
-
         match: null,
-
+        mails: null,
         templates: {
-          'starter': 'no starter template',
-          'main': 'no main template',
-          'dessert': 'no dessert template',
+          'starter': '',
+          'main': '',
+          'dessert': '',
         },
+      },
+      methods: {
+      },
+      computed: {
       },
     })
   </script>
