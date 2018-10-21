@@ -3,6 +3,7 @@
 Vue.component('view-send', {
   data: () => ({
     busy: false,
+    poorpeople: [],
     email: x => (/^.+@.+$/).test(x) || 'Invalid E-Mail',
   }),
   props: ['teams', 'templates', 'match', 'snack', 'token', 'subject', 'sender', 'testmail'],
@@ -43,9 +44,67 @@ Vue.component('view-send', {
       this.busy = true;
     },
 
-    callbackAll(message) {
+    callbackAll(missing) {
+      if (missing.length == 0) {
+        this.logSuccess('All Mails successfully send!');
+      } else {
+        this.logError(`Did not send mails to ${missing.length} people`);
+        this.poorpeople = missing;
+      }
     },
     sendAll() {
+      const vm = this;
+
+      this.poorpeople = [];
+      let missing = [];
+      let pending = 0;
+
+      const handler = (name) => {
+        return (message) => {
+          if (message.toLowerCase() == 'ok') {
+            const idx = missing.indexOf(name);
+            if (idx !== -1) {
+              missing.splice(idx, 1);
+            }
+          }
+          pending -= 1;
+          if (pending  == 0) {
+            this.busy = false;
+            this.callbackAll(missing);
+          }
+        }
+      }
+
+      this.busy = true;
+      for (let i = 0; i < this.teams.length; ++i) {
+        const team = this.teams[i];
+        let mailbody = generateMail(i, this.teams, this.match, this.templates);
+        mailbody = mailbody.replaceAll('\n', '<br>');
+
+        missing.push(team.name1);
+        pending += 1;
+        Email.send(
+          this.sender,
+          team.mail1,
+          this.subject,
+          mailbody,
+          { token: this.token,
+            callback: handler(team.name1),
+          }
+        );
+
+        missing.push(team.name2);
+        pending += 1;
+        Email.send(
+          this.sender,
+          team.mail2,
+          this.subject,
+          mail,
+          { token: this.token,
+            callback: handler(team.name2),
+          }
+        );
+      }
     },
 
     logSuccess(message) {
@@ -55,15 +114,13 @@ Vue.component('view-send', {
         items: [message],
       });
     },
-    logError(items) {
+    logError(message) {
       this.$emit('update:snack', {
         visible: true,
         color: 'error',
-        items: items,
+        items: [message],
       });
-      for (let i = 0; i < items.length; ++i) {
-        console.log(items[i]);
-      }
+      console.log(message);
     }
   },
   computed: {
@@ -135,7 +192,7 @@ Vue.component('view-send', {
           </v-text-field>
         </v-flex>
         <v-flex xs12 pa-1>
-          <v-btn color='error' :disabled='!canSend'>
+          <v-btn color='error' :disabled='!canSend' @click='sendAll'>
             Send All
           </v-btn>
           <v-btn :disabled='!canDownload' @click='downloadMails'>
@@ -143,6 +200,15 @@ Vue.component('view-send', {
           </v-btn>
           <v-progress-circular indeterminate v-if='busy'>
           </v-progress-circular>
+        </v-flex>
+      </v-layout>
+
+      <v-layout row wrap v-if='poorpeople.length > 0'>
+        <v-flex xs12 pt-2>
+          <v-divider></v-divider>
+        </v-flex>
+        <v-flex xs12 pt-2 class='body-2'>
+          People that did not receive mails: {{ poorpeople.join(', ') }}
         </v-flex>
       </v-layout>
     </v-card-text>

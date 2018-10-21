@@ -52,6 +52,12 @@
                 <v-tab>Send</v-tab>
               </v-tabs>
 
+              <v-spacer>
+              </v-spacer>
+              <v-btn color='warning' @click='resetAll'>
+                RESET
+              </v-btn>
+
             </v-card-title>
 
             <v-tabs-items v-model='tab'>
@@ -146,6 +152,9 @@
         testmail: '',
       },
       methods: {
+        resetAll() {
+          clearData();
+        },
         load() {
           const item = localStorage.getItem('data');
           if (item) {

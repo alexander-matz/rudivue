@@ -223,9 +223,7 @@ Vue.component('view-team', {
     onInput(event) {
       const newVal = { ...this.value };
       newVal[event.target.dataset.key] = event.target.value;
-      console.log(event);
       this.$emit('input', newVal);
-      console.log(this.value);
     },
   },
   computed: {
