@@ -1,15 +1,13 @@
 Vue.component('view-matching', {
   data: () => ({
     busy: false,
-    score: Infinity,
     workers: null,
-    match: null,
     start: null,
   }),
   destroyed() {
     this.stopMatching();
   },
-  props: [ 'value', 'teams' ],
+  props: [ 'match', 'teams' ],
   methods: {
     calcRounds() {
       let akk = 0;
@@ -39,9 +37,7 @@ Vue.component('view-matching', {
         });
       }
       const coords = teams.map(x => parseCoords(x.coords));
-      this.match = Matching.init(teams.length, 3, coords, constraints);
-      this.score = Matching.score(this.match);
-      this.$emit('input', this.match);
+      this.$emit('update:match', Matching.init(teams.length, 3, coords, constraints));
     },
     startMatching() {
       this.workers = [];
@@ -73,9 +69,7 @@ Vue.component('view-matching', {
     handleMessage(event) {
       const {score, match} = event.data;
       if (score < this.score) {
-        this.score = score;
-        this.match = match;
-        this.$emit('input', match);
+        this.$emit('update:match', match);
       }
       if (this.busy) {
         event.target.postMessage({
@@ -93,6 +87,13 @@ Vue.component('view-matching', {
     }
   },
   computed: {
+    score() {
+      if (this.match == null) {
+        return Infinity;
+      } else {
+        return Matching.score(this.match);
+      }
+    },
     filterItems() {
       items = [];
       const teams = this.teams;
@@ -137,8 +138,8 @@ Vue.component('view-matching', {
           <v-btn :disabled='match == null' v-else @click='stopMatching'>
             Stop!
           </v-btn>
-          <div class='score' v-if='this.match != null'>
-            {{ this.score.toFixed(2) }}
+          <div class='score' v-if='match != null'>
+            {{ score.toFixed(2) }}
           </div>
         </v-flex>
         <v-flex md6 xs12>
@@ -217,7 +218,7 @@ Vue.component('view-match', {
       <v-flex xs12 class='subheading'>
         Cooks: {{ dishes[cooks] }}
       </v-flex>
-      <v-flex xs12 v-for='dish in [0, 1, 2]'>
+      <v-flex xs12 v-for='dish in [0, 1, 2]' :key='dish'>
         <div :class='classDish(dish)'>{{ dishes[dish] }} @ {{ teamAddr(tour[dish][0]) }}</div>
         <v-list>
           <v-list-tile>
@@ -251,7 +252,7 @@ Vue.component('view-match', {
             </v-list-tile-content>
           </v-list-tile>
         </v-list>
-      </f-flex>
+      </v-flex>
     </v-layout>
   `
 });

@@ -62,7 +62,7 @@
               </view-teams>
 
               <view-matching
-                v-model='match'
+                v-bind:match.sync='match'
                 v-bind:teams='teams'>
               </view-matching>
 
@@ -110,6 +110,13 @@
   <script src="js/Mails.js"></script>
   <script src="js/Send.js"></script>
   <script>
+
+    let saveTO = {}
+    const clearData = () => {
+      localStorage.setItem('data', null);
+      location.reload();
+    }
+
     Vue.prototype.fuzzyFilter = (i, q, it) =>
       fuzzysearch(q.toLowerCase(), it.toLowerCase());
     new Vue({
@@ -123,7 +130,6 @@
           items: [],
         },
         match: null,
-        mails: null,
         templates: {
           'starter': '',
           'main': '',
@@ -131,6 +137,30 @@
         },
       },
       methods: {
+        load() {
+          const item = localStorage.getItem('data');
+          if (item) {
+            const parsed = JSON.parse(item);
+            for (const key in parsed)  {
+              this.$data[key] = parsed[key];
+            }
+          }
+        },
+        save() {
+          console.log('Saving...');
+          localStorage.setItem('data', JSON.stringify({
+            tab: this.tab,
+            teams: this.teams,
+            match: this.match,
+            templates: this.templates,
+          }));
+        },
+      },
+      beforeMount() {
+        this.load();
+      },
+      beforeUpdate() {
+        debounce(this.save, 1000, saveTO);
       },
       computed: {
       },

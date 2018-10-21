@@ -6,6 +6,13 @@ Vue.component('v-file', {
     onPickFile (e) {
       this.$refs.elem.click()
     },
+    onDragOver(e) {
+      e.preventDefault();
+    },
+    onDrop(e) {
+      e.preventDefault();
+      this.onFilePicked(e);
+    },
     onFilePicked (e) {
       const files = e.target.files || e.dataTransfer.files;
       if (files && files[0]) {
@@ -20,7 +27,8 @@ Vue.component('v-file', {
     },
   },
   template: `
-    <v-btn :icon='icon' :flat='flat' @click='onPickFile'>
+    <v-btn :icon='icon' :flat='flat'
+      @click='onPickFile' @dragover='onDragOver' @drop='onDrop'>
       <slot></slot>
       <input
         type='file'

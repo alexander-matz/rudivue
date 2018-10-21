@@ -3,7 +3,7 @@
 Vue.component('view-templates', {
   data: () => ({
     choice: 'starter',
-    variable: 'name1',
+    variable: '$(recipient-name1)',
     variables: [
       '$(recipient-name1)',   '$(recipient-mail1)', '$(recipient-phone1)',
       '$(recipient-name2)',   '$(recipient-mail2)', '$(recipient-phone2)',
@@ -51,7 +51,6 @@ Vue.component('view-templates', {
     onImport(text) {
       try {
         const data = JSON.parse(text);
-        console.log(data);
         this.$emit('input', {
           starter: data.starter,
           main: data.main,
@@ -76,34 +75,37 @@ Vue.component('view-templates', {
     <v-tab-item>
       <v-card-text>
         <v-layout row wrap>
-          <v-file accept='.json' @input='onImport'>
-            Import
-            <v-icon right>backup</v-icon>
-          </v-file>
-          <v-btn @click='onExport'>
-            Export
-            <v-icon right>archive</v-icon>
-          </v-btn>
-          <v-flex md4 xs12>
+          <v-flex xs12>
+            <v-file accept='.json' @input='onImport'>
+              Import
+              <v-icon right>backup</v-icon>
+            </v-file>
+            <v-btn @click='onExport'>
+              Export
+              <v-icon right>archive</v-icon>
+            </v-btn>
+          </v-flex>
+          <v-flex md4 xs12 pa-1>
             <v-select v-model='choice' :items='items' label='Select Mail Type'>
             </v-select>
           </v-flex>
-          <v-flex md4 xs12>
+          <v-flex md4 xs12 pa-1>
             <v-select v-model='variable' :items='variables' @input='onAddVariable'>
               <template slot='selection' slot-scope='{ index }'>
                 <span v-if='index === 0'>
-                  Copy a variable to clipboard
+                  Variables (Copy to Clipboard)
                 </span>
               </template>
             </v-select>
           </v-flex>
+          <v-flex xs12 pa-1>
+            <v-textarea
+              label="Mail Template"
+              auto-grow
+              v-model='value[choice]'>
+            </v-textarea>
+          </v-flex>
         </v-layout>
-        </v-select>
-        <v-textarea
-          label="Mail Template"
-          auto-grow
-          v-model='value[choice]'>
-        </v-textarea>
       </v-card-text>
     </v-tab-item>
   `,

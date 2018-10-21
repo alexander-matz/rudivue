@@ -1,6 +1,13 @@
 const lowerLeftMA = [49.446, 8.4517];
 const upperRightMA = [49.514, 8.4955];
 
+const debounce = (func, wait, to) => {
+  if (to.timeout) {
+    clearTimeout(to.timeout);
+  }
+  to.timeout = setTimeout(func, wait);
+}
+
 const randomBoxedCoords = (lowerLeft, upperRight) => {
   const lat = chance.latitude({min: lowerLeft[0], max: upperRight[0]});
   const lng = chance.latitude({min: lowerLeft[1], max: upperRight[1]});
