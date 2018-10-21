@@ -241,9 +241,9 @@ Vue.component('view-team', {
           <v-text-field label='Phone 1' data-key='phone1' v-bind:value='value["phone1"]'></v-text-field>
         </v-flex>
         <v-flex md6 xs12 pa-4>
-          <v-text-field label='Name 2' data-key='name1' v-bind:value='value["name2"]'></v-text-field>
-          <v-text-field label='Mail 2' data-key='mail1' v-bind:value='value["mail2"]'></v-text-field>
-          <v-text-field label='Phone 2' data-key='phone1' v-bind:value='value["phone2"]'></v-text-field>
+          <v-text-field label='Name 2' data-key='name2' v-bind:value='value["name2"]'></v-text-field>
+          <v-text-field label='Mail 2' data-key='mail2' v-bind:value='value["mail2"]'></v-text-field>
+          <v-text-field label='Phone 2' data-key='phone2' v-bind:value='value["phone2"]'></v-text-field>
         </v-flex>
         <v-flex md6 xs12 pa-4>
           <v-text-field label='Address' data-key='address' v-bind:value='value["address"]'></v-text-field>
