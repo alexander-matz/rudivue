@@ -1,6 +1,7 @@
 Vue.component('view-matching', {
   data: () => ({
     busy: false,
+    page: 1,
     workers: null,
     start: null,
   }),
@@ -80,7 +81,6 @@ Vue.component('view-matching', {
       }
     },
     onSearch(index) {
-      console.log(index);
       if (index != null) {
         this.page = index + 1;
       }
@@ -93,6 +93,15 @@ Vue.component('view-matching', {
       } else {
         return Matching.score(this.match);
       }
+    },
+    selected () {
+      if (this.match == null)
+        return null;
+      if (this.page < 1) 
+        return 1;
+      if (this.page > this.teams.length)
+        return this.teams.length;
+      return this.page-1;
     },
     filterItems() {
       items = [];
@@ -118,11 +127,11 @@ Vue.component('view-matching', {
           return 'Not all teams have coordinates';
         }
       }
-      return null;
-    }
+      return '';
+    },
   },
   template: `
-  <v-tab-item v-if='problems == null'>
+  <v-tab-item>
     <v-card-text>
       <v-layout wrap>
         <v-flex md6 xs12>
@@ -142,28 +151,32 @@ Vue.component('view-matching', {
             {{ score.toFixed(2) }}
           </div>
         </v-flex>
-        <v-flex md6 xs12>
+
+        <v-flex md6 xs12 v-if='match != null'>
           <v-autocomplete :items='filterItems' :filter='fuzzyFilter' @input='onSearch'
-            clearable append-icon='search' placeholder='Filter'>
+            clearable append-icon='search' placeholder='Search'>
           </v-autocomplete>
         </v-flex>
-        <v-flex xs12 v-if='match != null'>
-          <view-match v-model='match' v-bind:teams='teams'>
+
+        <v-flex xs12 v-if='selected != null'>
+          <v-pagination v-model='page' :length='teams.length'></v-pagination>
+        </v-flex>
+
+        <v-flex xs12 v-if='selected != null'>
+          <view-match v-bind:match='match' v-bind:index='selected' v-bind:teams='teams'>
           </view-match>
         </v-flex>
-        <v-flex xs12 v-else>
-          <p class='text-xs-center'>
-            No matching yet
-          </p>
+
+        <v-flex xs12 v-if='selected != null'>
+          <v-pagination v-model='page' :length='teams.length'></v-pagination>
         </v-flex>
+
       </v-layout>
     </v-card-text>
-  </v-tab-item>
 
-  <v-tab-item v-else>
-    <v-footer color='warning'>
+    <v-footer color='warning' v-if='problems != ""'>
       <v-flex pa-3>
-        {{ problems }}
+      {{ problems }}
       </v-flex>
     </v-footer>
   </v-tab-item>
@@ -172,19 +185,18 @@ Vue.component('view-matching', {
 
 Vue.component('view-match', {
   data: () => ({
-    page: 1,
     dishes: ['Starter', 'Main', 'Dessert'],
   }),
-  props: [ 'value', 'teams' ],
+  props: [ 'match', 'teams', 'index' ],
   computed: {
     team() {
-      return this.page-1;
+      return this.teams[this.index];
     },
     cooks() {
-      return Matching.getTour(this.value, this.page-1).cooks;
+      return Matching.getTour(this.match, this.index).cooks;
     },
     tour() {
-      return Matching.getTour(this.value, this.page-1).tour;
+      return Matching.getTour(this.match, this.index).tour;
     },
   },
   methods: {
@@ -207,12 +219,8 @@ Vue.component('view-match', {
   },
   template: `
     <v-layout wrap>
-      <v-flex xs12>
-        <v-pagination v-model='page' :length='teams.length'></v-pagination>
-      </v-flex>
-
       <v-flex xs12 class='headline' pt-3>
-        {{ teamStr(team) }}
+        {{ teamStr(index) }}
       </v-flex>
 
       <v-flex xs12 class='subheading'>

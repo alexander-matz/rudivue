@@ -80,7 +80,12 @@
               <view-send
                 v-bind:templates='templates'
                 v-bind:teams='teams'
-                v-bind:match='match'>
+                v-bind:match='match'
+                v-bind:token.sync='token'
+                v-bind:sender.sync='sender'
+                v-bind:subject.sync='subject'
+                v-bind:testmail.sync='testmail'
+                v-bind:snack.sync='snack'>
               </view-send>
 
             </v-tabs-items>
@@ -135,6 +140,10 @@
           'main': '',
           'dessert': '',
         },
+        subject: 'Running Dinner',
+        token: '',
+        sender: '',
+        testmail: '',
       },
       methods: {
         load() {
@@ -153,6 +162,10 @@
             teams: this.teams,
             match: this.match,
             templates: this.templates,
+            token: this.token,
+            subject: this.subject,
+            sender: this.sender,
+            testmail: this.testmail,
           }));
         },
       },

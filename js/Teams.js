@@ -146,7 +146,7 @@ Vue.component('view-teams', {
           :items='filterItems'
           :filter='fuzzyFilter'
           @input='onSearch'
-          clearable append-icon='search' placeholder='Filter'
+          clearable append-icon='search' placeholder='Search'
           v-if='isReady'>
         </v-autocomplete>
       </v-layout>
@@ -220,6 +220,13 @@ Vue.component('view-team', {
       const latlng = event.latlng;
       this.$emit('input', {...this.value, coords: `${latlng.lat}, ${latlng.lng}`});
     },
+    onInput(event) {
+      const newVal = { ...this.value };
+      newVal[event.target.dataset.key] = event.target.value;
+      console.log(event);
+      this.$emit('input', newVal);
+      console.log(this.value);
+    },
   },
   computed: {
     markerCoords() {
@@ -228,31 +235,36 @@ Vue.component('view-team', {
   },
   props: ['value'],
   template: `
-    <v-layout row wrap>
-      <v-flex md6 xs12 pa-4>
-        <v-text-field label='Name 1' v-model='value.name1'></v-text-field>
-        <v-text-field label='Mail 1' v-model='value.mail1'></v-text-field>
-        <v-text-field label='Phone 1' v-model='value.phone1'></v-text-field>
-      </v-flex>
-      <v-flex md6 xs12 pa-4>
-        <v-text-field label='Name 2' v-model='value.name2'></v-text-field>
-        <v-text-field label='Mail 2' v-model='value.mail2'></v-text-field>
-        <v-text-field label='Phone 2' v-model='value.phone2'></v-text-field>
-      </v-flex>
-      <v-flex md6 xs12 pa-4>
-        <v-text-field label='Address' v-model='value.address'></v-text-field>
-        <v-text-field label='Comments' v-model='value.comments'></v-text-field>
-        <v-text-field label='Coordinates' v-model='value.coords'></v-text-field>
-        <v-layout row wrap>
-          <v-checkbox xs2 label='Starter' v-model='value.starter'></v-checkbox>
-          <v-checkbox xs2 label='Main' v-model='value.main'></v-checkbox>
-          <v-checkbox xs2 label='Dessert' v-model='value.dessert'></v-checkbox>
-        </v-layout>
-      </v-flex>
-      <v-flex md6 xs12 pa-4>
-        <div ref='map' style='width: 100%; height: 400px;'>
-        </div>
-      </v-flex>
-    </v-layout>
+    <form @input='onInput' style='width=100%;'>
+      <v-layout row wrap>
+        <v-flex md6 xs12 pa-4>
+          <v-text-field label='Name 1' data-key='name1' v-bind:value='value["name1"]'></v-text-field>
+          <v-text-field label='Mail 1' data-key='mail1' v-bind:value='value["mail1"]'></v-text-field>
+          <v-text-field label='Phone 1' data-key='phone1' v-bind:value='value["phone1"]'></v-text-field>
+        </v-flex>
+        <v-flex md6 xs12 pa-4>
+          <v-text-field label='Name 2' data-key='name1' v-bind:value='value["name2"]'></v-text-field>
+          <v-text-field label='Mail 2' data-key='mail1' v-bind:value='value["mail2"]'></v-text-field>
+          <v-text-field label='Phone 2' data-key='phone1' v-bind:value='value["phone2"]'></v-text-field>
+        </v-flex>
+        <v-flex md6 xs12 pa-4>
+          <v-text-field label='Address' data-key='address' v-bind:value='value["address"]'></v-text-field>
+          <v-text-field label='Comments' data-key='comments' v-bind:value='value["comments"]'></v-text-field>
+          <v-text-field label='Coordinates' data-key='coords' v-bind:value='value["coords"]'></v-text-field>
+          <v-layout row wrap>
+            <v-checkbox xs4 label='Starter' data-key='starter' v-model='value.starter'
+              @change='$emit("input", { ...value, starter: $event })'></v-checkbox>
+            <v-checkbox xs4 label='Main' data-key='main' v-model='value.main'
+              @change='$emit("input", { ...value, main: $event })'></v-checkbox>
+            <v-checkbox xs4 label='Dessert' data-key='dessert' v-model='value.dessert'
+              @change='$emit("input", { ...value, dessert: $event })'></v-checkbox>
+          </v-layout>
+        </v-flex>
+        <v-flex md6 xs12 pa-4>
+          <div ref='map' style='width: 100%; height: 400px;'>
+          </div>
+        </v-flex>
+      </v-layout>
+    </form>
   `,
 })

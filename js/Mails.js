@@ -3,7 +3,6 @@
 Vue.component("view-mails", {
   data: () => ({
     page: 1,
-    subject: 'Running Dinner',
   }),
   props: [ 'teams', 'templates', 'match' ],
   computed: {
@@ -40,9 +39,6 @@ Vue.component("view-mails", {
   <v-tab-item>
 
     <v-card-text>
-      <v-text-field label='Subject' v-model='subject'>
-      </v-text-field>
-
       <div v-if='errors == "" && index != null'>
         <v-pagination v-model='page' :length='teams.length'>
       </v-pagination>

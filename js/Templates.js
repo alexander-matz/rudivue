@@ -70,6 +70,11 @@ Vue.component('view-templates', {
     onAddVariable(event) {
       copyTextToClipboard(event);
     },
+    onInput(event) {
+      let newVal = { ... this.value };
+      newVal[this.choice] = event;
+      this.$emit('input', newVal);
+    },
   },
   template: `
     <v-tab-item>
@@ -102,7 +107,8 @@ Vue.component('view-templates', {
             <v-textarea
               label="Mail Template"
               auto-grow
-              v-model='value[choice]'>
+              v-bind:value='value[choice]'
+              @input='onInput'>
             </v-textarea>
           </v-flex>
         </v-layout>
